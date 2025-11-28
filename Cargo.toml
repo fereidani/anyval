@@ -2,6 +2,14 @@
 name = "anyval"
 version = "0.1.0"
 edition = "2024"
+authors = ["Khashayar Fereidani"]
+description = "A lightweight, dynamically‑typed value container for Rust that works like a scripting language."
+repository = "https://github.com/fereidani/anyval"
+documentation = "https://docs.rs/anyval"
+keywords = ["dynamic", "value", "data-structures", "scripting", "json"]
+categories = ["data-structures"]
+license = "MIT"
+readme = "README.md"
 
 [dependencies]
 count_tts = "0.2.0"
