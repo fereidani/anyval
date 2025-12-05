@@ -2,11 +2,11 @@
 #![warn(missing_docs, missing_debug_implementations)]
 
 mod string;
+use hashbrown::HashMap;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use std::{
     borrow::Cow,
-    collections::HashMap,
     fmt::{Debug, Display},
 };
 pub use string::*;
@@ -52,7 +52,7 @@ impl Map {
     /// ```
     pub fn new() -> Self {
         Self {
-            inner: Box::new(HashMap::new()),
+            inner: Box::new(HashMap::default()),
         }
     }
     /// Creates an empty `Map` with at least the specified capacity.
@@ -69,8 +69,10 @@ impl Map {
     /// let mut map = Map::with_capacity(10);
     /// ```
     pub fn with_capacity(capacity: usize) -> Self {
+        let mut inner = HashMap::default();
+        inner.reserve(capacity);
         Self {
-            inner: Box::new(HashMap::with_capacity(capacity)),
+            inner: Box::new(inner),
         }
     }
 

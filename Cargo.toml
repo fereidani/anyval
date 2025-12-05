@@ -13,6 +13,7 @@ readme = "README.md"
 
 [dependencies]
 count_tts = "0.2.0"
+hashbrown = { version = "0.16", features = ["serde"] }
 serde = { version = "1", optional = true }
 serde_json = { version = "1", optional = true }
 
@@ -20,3 +21,12 @@ serde_json = { version = "1", optional = true }
 serde = ["dep:serde"]
 json = ["serde", "dep:serde_json"]
 default = ["json", "serde"]
+
+[dev-dependencies]
+criterion = "0.7"
+
+
+[[bench]]
+name = "bench"
+harness = false
+path = "benches/bench.rs"
