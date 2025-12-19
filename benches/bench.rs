@@ -1,4 +1,4 @@
-use anyval::{Array, Map, Value, array, map};
+use anyval::{Map, Value, array, map};
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 
 fn bench_map_macro(c: &mut Criterion) {

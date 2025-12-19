@@ -1,8 +1,7 @@
+use alloc::sync::Arc;
+use core::fmt::{Debug, Display};
+
 use crate::*;
-use std::{
-    fmt::{Debug, Display},
-    sync::Arc,
-};
 
 /// A string type that can hold either a `'static` string slice, an
 /// `Arc<String>` for cheap cloning, or an owned `String`.
@@ -13,8 +12,8 @@ use std::{
 /// # Variants
 ///
 /// * `Static(&'static str)` – A reference to a compile‑time constant string.
-/// * `Rc(Arc<String>)` – A reference‑counted pointer to a `String`, allowing cheap
-///   cloning of the underlying data.
+/// * `Rc(Arc<String>)` – A reference‑counted pointer to a `String`, allowing
+///   cheap cloning of the underlying data.
 /// * `Owned(String)` – An owned heap‑allocated `String`.
 pub enum Str {
     /// A reference to a compile‑time constant string.
@@ -28,7 +27,7 @@ pub enum Str {
 }
 
 impl Display for Str {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Str::Static(s) => write!(f, "{}", s),
             Str::Rc(s) => write!(f, "{}", s),
@@ -48,7 +47,7 @@ impl Clone for Str {
 }
 
 impl Debug for Str {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Str::Static(s) => write!(f, "Str::Static({:?})", s),
             Str::Rc(s) => write!(f, "Str::Rc({:?})", s),
@@ -114,7 +113,8 @@ impl Str {
     /// # Examples
     ///
     /// ```rust
-    /// use std::sync::Arc;
+    /// # extern crate alloc;
+    /// # use alloc::sync::Arc;
     /// use anyval::Str;
     /// let arc = Arc::new(String::from("shared"));
     /// let s = Str::from_rc(arc.clone());
@@ -185,8 +185,9 @@ impl Str {
     /// # Examples
     ///
     /// ```rust
+    /// # extern crate alloc;
     /// use anyval::Str;
-    /// use std::sync::Arc;
+    /// # use alloc::sync::Arc;
     /// let s = Str::from_rc(Arc::new(String::from("shared")));
     /// assert!(s.is_rc());
     /// ```

@@ -1,21 +1,22 @@
+#![cfg_attr(not(feature = "std"), no_std)]
 #![doc = include_str!("../README.md")]
 #![warn(missing_docs, missing_debug_implementations)]
 
+extern crate alloc;
+use alloc::{borrow::Cow, boxed::Box, string::*, vec::Vec};
 mod string;
+use core::fmt::{Debug, Display};
+
 use hashbrown::HashMap;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use std::{
-    borrow::Cow,
-    fmt::{Debug, Display},
-};
 pub use string::*;
 
 #[derive(Debug, Clone)]
 /// A map of string keys to dynamically typed values.
 ///
-/// `Map` is a wrapper around a `HashMap<String, Value>` that provides a convenient
-/// way to store and access heterogeneous data with string keys.
+/// `Map` is a wrapper around a `HashMap<String, Value>` that provides a
+/// convenient way to store and access heterogeneous data with string keys.
 ///
 /// # Examples
 ///
@@ -40,8 +41,8 @@ pub struct Map {
 impl Map {
     /// Creates an empty `Map`.
     ///
-    /// The map is initially created with a capacity of 0, so it will not allocate until it
-    /// is first inserted into.
+    /// The map is initially created with a capacity of 0, so it will not
+    /// allocate until it is first inserted into.
     ///
     /// # Examples
     ///
@@ -150,7 +151,7 @@ impl Map {
     }
 }
 
-impl std::ops::Index<&str> for Map {
+impl core::ops::Index<&str> for Map {
     type Output = Value;
 
     fn index(&self, index: &str) -> &Self::Output {
@@ -158,7 +159,7 @@ impl std::ops::Index<&str> for Map {
     }
 }
 
-impl std::ops::IndexMut<&str> for Map {
+impl core::ops::IndexMut<&str> for Map {
     fn index_mut(&mut self, index: &str) -> &mut Self::Output {
         self.inner
             .entry(index.to_string())
@@ -166,7 +167,7 @@ impl std::ops::IndexMut<&str> for Map {
     }
 }
 
-impl std::ops::Deref for Map {
+impl core::ops::Deref for Map {
     type Target = HashMap<String, Value>;
 
     fn deref(&self) -> &Self::Target {
@@ -174,7 +175,7 @@ impl std::ops::Deref for Map {
     }
 }
 
-impl std::ops::DerefMut for Map {
+impl core::ops::DerefMut for Map {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.inner
     }
@@ -227,7 +228,6 @@ impl Array {
     /// assert!(arr.is_empty());
     /// arr.push((10).into());
     /// assert_eq!(arr.len(), 1);
-    ///
     /// ```
     pub fn new() -> Self {
         Self {
@@ -283,7 +283,6 @@ impl Array {
     /// assert_eq!(arr[0].as_map().unwrap()["key"].as_str(), "value");
     /// assert_eq!(arr[1].as_int(), 42);
     /// ```
-    ///
     pub fn from_json(s: &str) -> Result<Self, serde_json::Error> {
         serde_json::from_str(s)
     }
@@ -324,13 +323,13 @@ impl Array {
     /// arr.to_json_writer(&mut buffer).unwrap();
     /// assert_eq!(String::from_utf8(buffer).unwrap(), r#"["value",42]"#);
     /// ```
-    #[cfg(all(feature = "json"))]
+    #[cfg(all(feature = "json", feature = "std"))]
     pub fn to_json_writer<W: std::io::Write>(&self, writer: W) -> Result<(), serde_json::Error> {
         serde_json::to_writer(writer, &self)
     }
 }
 
-impl std::ops::Deref for Array {
+impl core::ops::Deref for Array {
     type Target = Vec<Value>;
 
     fn deref(&self) -> &Self::Target {
@@ -338,7 +337,7 @@ impl std::ops::Deref for Array {
     }
 }
 
-impl std::ops::DerefMut for Array {
+impl core::ops::DerefMut for Array {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.inner
     }
@@ -363,16 +362,16 @@ impl Default for Array {
 ///   of `f64` in the Rust standard library, including `NaN` and `Infinity`
 ///   handling.
 ///
-/// * **`Int(i64)`** – A signed 64‑bit integer. Provides the full range of
-///   `i64` values.
+/// * **`Int(i64)`** – A signed 64‑bit integer. Provides the full range of `i64`
+///   values.
 ///
 /// * **`Bool(bool)`** – A boolean value, either `true` or `false`.
 ///
 /// * **`String(Str)`** – A string value that may be a static slice, an
 ///   `Arc<String>`, or an owned `String`. See [`Str`] for details.
 ///
-/// * **`Map(Map)`** – An associative container mapping string keys to
-///   `Value`s. See [`Map`] for the underlying implementation.
+/// * **`Map(Map)`** – An associative container mapping string keys to `Value`s.
+///   See [`Map`] for the underlying implementation.
 ///
 /// * **`Array(Array)`** – An ordered list of `Value`s. See [`Array`] for the
 ///   underlying implementation.
@@ -480,7 +479,7 @@ pub enum ValueRefMut<'a> {
 }
 
 impl Display for Value {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Value::String(s) => write!(f, "{}", s),
             Value::Float(fl) => write!(f, "{}", fl),
@@ -494,7 +493,7 @@ impl Display for Value {
 }
 
 impl Debug for Value {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Value::String(s) => write!(f, "{:?}", s),
             Value::Float(fl) => write!(f, "Value::Float({:?})", fl),
@@ -572,7 +571,8 @@ impl Value {
     ///
     /// * `Float` – returns the contained `f64`.
     /// * `Int` – casts the integer to `f64`.
-    /// * `String` – parses the string as `f64`; on parse failure `0.0` is returned.
+    /// * `String` – parses the string as `f64`; on parse failure `0.0` is
+    ///   returned.
     /// * `Bool` – `true` becomes `1.0`, `false` becomes `0.0`.
     /// * Any other variant – returns `0.0`.
     ///
@@ -607,7 +607,8 @@ impl Value {
     ///
     /// * `Int` – returns the contained integer.
     /// * `Float` – truncates the floating‑point value.
-    /// * `String` – parses the string as `i64`; on parse failure `0` is returned.
+    /// * `String` – parses the string as `i64`; on parse failure `0` is
+    ///   returned.
     /// * `Bool` – `true` becomes `1`, `false` becomes `0`.
     /// * Any other variant – returns `0`.
     ///
@@ -750,7 +751,8 @@ impl Value {
         Value::Array(Array::new())
     }
 
-    /// Safely gets a value from a map by key, returning None if not a map or key doesn't exist
+    /// Safely gets a value from a map by key, returning None if not a map or
+    /// key doesn't exist
     pub fn get(&self, key: &str) -> Option<&Value> {
         self.as_map()?.get(key)
     }
@@ -835,7 +837,7 @@ impl Value {
     /// val.to_json_writer(&mut buffer).unwrap();
     /// assert_eq!(String::from_utf8(buffer).unwrap(), "42");
     /// ```
-    #[cfg(all(feature = "json"))]
+    #[cfg(all(feature = "json", feature = "std"))]
     pub fn to_json_writer<W: std::io::Write>(&self, writer: W) -> Result<(), serde_json::Error> {
         serde_json::to_writer(writer, &self)
     }
@@ -859,7 +861,7 @@ impl Serialize for Value {
     }
 }
 
-impl std::ops::Index<&str> for Value {
+impl core::ops::Index<&str> for Value {
     type Output = Value;
 
     fn index(&self, index: &str) -> &Self::Output {
@@ -870,7 +872,7 @@ impl std::ops::Index<&str> for Value {
     }
 }
 
-impl std::ops::IndexMut<&str> for Value {
+impl core::ops::IndexMut<&str> for Value {
     fn index_mut(&mut self, index: &str) -> &mut Self::Output {
         match self {
             Value::Map(m) => &mut m[index],
@@ -882,7 +884,7 @@ impl std::ops::IndexMut<&str> for Value {
     }
 }
 
-impl std::ops::Index<usize> for Value {
+impl core::ops::Index<usize> for Value {
     type Output = Value;
 
     fn index(&self, index: usize) -> &Self::Output {
@@ -893,7 +895,7 @@ impl std::ops::Index<usize> for Value {
     }
 }
 
-impl std::ops::IndexMut<usize> for Value {
+impl core::ops::IndexMut<usize> for Value {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         match self {
             Value::Array(a) => &mut a[index],
@@ -916,7 +918,7 @@ impl<'de> Deserialize<'de> for Value {
         impl<'de> serde::de::Visitor<'de> for ValueVisitor {
             type Value = Value;
 
-            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
                 formatter.write_str("a valid Value")
             }
 
@@ -974,7 +976,7 @@ impl<'de> Deserialize<'de> for Value {
                 E: serde::de::Error,
             {
                 let mut writer = String::new();
-                std::fmt::Write::write_fmt(&mut writer, format_args!("integer `{}` as i128", v))
+                core::fmt::Write::write_fmt(&mut writer, format_args!("integer `{}` as i128", v))
                     .unwrap();
                 Err(serde::de::Error::invalid_type(
                     serde::de::Unexpected::Other(writer.as_str()),
@@ -1322,7 +1324,7 @@ impl PartialEq for Value {
 // Add IntoIterator for Array
 impl IntoIterator for Array {
     type Item = Value;
-    type IntoIter = std::vec::IntoIter<Value>;
+    type IntoIter = alloc::vec::IntoIter<Value>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.inner.into_iter()
@@ -1331,7 +1333,7 @@ impl IntoIterator for Array {
 
 impl<'a> IntoIterator for &'a Array {
     type Item = &'a Value;
-    type IntoIter = std::slice::Iter<'a, Value>;
+    type IntoIter = alloc::slice::Iter<'a, Value>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.inner.iter()
@@ -1340,7 +1342,8 @@ impl<'a> IntoIterator for &'a Array {
 
 // Add helper methods to Value
 impl Value {
-    /// Returns a mutable reference to the underlying map if the value is a `Map`.
+    /// Returns a mutable reference to the underlying map if the value is a
+    /// `Map`.
     pub fn as_map_mut(&mut self) -> Option<&mut Map> {
         match self {
             Value::Map(m) => Some(m),
@@ -1348,7 +1351,8 @@ impl Value {
         }
     }
 
-    /// Returns a mutable reference to the underlying array if the value is an `Array`.
+    /// Returns a mutable reference to the underlying array if the value is an
+    /// `Array`.
     pub fn as_array_mut(&mut self) -> Option<&mut Array> {
         match self {
             Value::Array(a) => Some(a),
@@ -1363,7 +1367,7 @@ impl Value {
 
     /// Takes the value out, leaving `Value::None` in its place.
     pub fn take(&mut self) -> Value {
-        std::mem::replace(self, Value::None)
+        core::mem::replace(self, Value::None)
     }
 }
 
@@ -1387,13 +1391,14 @@ impl FromIterator<(String, Value)> for Map {
 
 /// Creates a [`Map`] containing the given key-value pairs.
 ///
-/// This macro provides a convenient way to initialize a `Map` with known entries.
-/// It comes in two forms:
+/// This macro provides a convenient way to initialize a `Map` with known
+/// entries. It comes in two forms:
 ///
 /// # Forms
 ///
 /// - `map!()` - Creates an empty map
-/// - `map!(key => value, ...)` - Creates a map with the specified key-value pairs
+/// - `map!(key => value, ...)` - Creates a map with the specified key-value
+///   pairs
 ///
 /// # Examples
 ///
@@ -1432,8 +1437,8 @@ macro_rules! map {
 
 /// Creates an [`Array`] containing the given values.
 ///
-/// This macro provides a convenient way to create an `Array` with initial values,
-/// similar to the `vec!` macro for `Vec`.
+/// This macro provides a convenient way to create an `Array` with initial
+/// values, similar to the `vec!` macro for `Vec`.
 ///
 /// # Examples
 ///
@@ -1457,8 +1462,8 @@ macro_rules! map {
 ///
 /// - Values are automatically converted using `.into()`, so they must implement
 ///   the appropriate `Into` trait for the array's element type.
-/// - The capacity is pre-allocated to match the number of elements when known at
-///   compile time.
+/// - The capacity is pre-allocated to match the number of elements when known
+///   at compile time.
 #[macro_export]
 macro_rules! array {
     () => {
